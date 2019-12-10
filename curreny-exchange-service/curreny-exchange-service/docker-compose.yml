@@ -1,0 +1,18 @@
+version: "3"
+services:
+  currencyexchange-service:
+    image: currencyexchange-serviceimg
+    networks:
+      - consumer-producer
+    depends_on:
+      - producer
+ 
+  eureka-server:
+    image: eureka-server
+    ports:
+      - "8080:8080"
+    networks:
+      - consumer-producer 
+
+networks:
+  consumer-producer:
