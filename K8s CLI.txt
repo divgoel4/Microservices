@@ -1,0 +1,242 @@
+---------------------
+Dockerize understanding
+>>Create Docker file with basic existing images like Openjdk
+Buid image using command: docker build -f dockerizer-ms2 -t ms-2-0.0.1-docker .
+Check is docker image create using command : docker images
+Run the image i.e. container using command : docker run -p 8095:8092 ms-2-0.0.1-docker
+try hitting microservice URL
+
+___________________________________________________________________________
+Kubernates understing
+Steps 
+1 : Login to Ibmcloud
+> ibmcloud login --sso
+API endpoint: https://cloud.ibm.com
+Region: us-south
+
+Get One Time Code from https://identity-2.eu-central.iam.cloud.ibm.com/identity/passcode to proceed.
+Open the URL in the default browser? [Y/n] > y
+One Time Code >
+OK
+
+Targeted account Divya Goel's Account (bb3923a11c991176b1972ed720dbb439)
+
+
+API endpoint:      https://cloud.ibm.com
+Account:           Divya Goel's Account (bb3923a11c991176b1972ed720dbb439)
+Resource group:    No resource group targeted, use 'C:\Program Files\IBM\Cloud\bin\ibmcloud.exe target -g RESOURCE_GROUP'
+CF API endpoint:
+Org:
+Space:
+
+
+2 : CR ie. Container registry plugin to be installed using below command
+ibmcloud plugin install container-registry
+2.1 : also CS ie. container-service
+ibmcloud plugin install container-service
+3 : Check for existing namespaces
+ibmcloud cr namespace-list
+4 : Add namespace
+ibmcloud cr namespace-add activity_namespace
+5 : Check for docker images on local
+> ibmcloud cr images
+Listing images...
+
+Repository                     Tag     Digest         Namespace     Created          Size     Security status
+us.icr.io/crnamespace/crrepo   1       f790b3fc1dd7   crnamespace   29 seconds ago   271 MB   Scanning...
+us.icr.io/crnamespace/crrepo   crtag   8b8adc7f5e5a   crnamespace   3 days ago       267 MB   No Issues
+
+OK
+
+
+5.0.1 : Login IBMCLOUD CR
+> ibmcloud cr login
+Logging in to 'registry.ng.bluemix.net'...
+Logged in to 'registry.ng.bluemix.net'.
+
+Logging in to 'us.icr.io'...
+Logged in to 'us.icr.io'.
+
+
+5.1 : We can check Cloud quota using below command
+> ibmcloud cr quota
+Getting quotas and usage for the current month, for account 'Divya Goel's Account'...
+
+Quota          Limit    Used
+Pull traffic   5.0 GB   254 MB
+Storage        512 MB   303 MB
+
+OK
+
+
+6 : tag Docker image to registry
+X docker tag ms-2-0.0.1-docker:latest  registry.eu-de.bluemix.net/activity_namespace/image_repo:1
+>docker tag igrocery-service-registry-docker:latest us.icr.io/activity_namespace/image_repo:ser-reg
+
+> docker tag dgoel27/curreny-exchange-service:latest us.icr.io/crnamespace/crrepo:1
+
+
+7: Push this local image to container registry
+ X docker push registry.eu-de.bluemix.net/activity_namespace/image_repo:1
+> docker push us.icr.io/crnamespace/crrepo:1
+The push refers to repository [us.icr.io/crnamespace/crrepo]
+4bab4a386893: Pushed 
+2ee490fbc316: Layer already exists 
+b18043518924: Layer already exists
+9a11244a7e74: Layer already exists
+5f3a5adb8e97: Layer already exists
+73bfa217d66f: Layer already exists
+91ecdd7165d3: Layer already exists 
+e4b20fcc48f4: Layer already exists 
+1: digest: sha256:5111e898556595d0ee697985c6084338850c84dbc3103c5527c1dc83ed4d067b size: 2007
+
+
+8: Validate the image on ibmcloud
+> ibmcloud cr image-list
+Listing images...
+
+Repository                     Tag     Digest         Namespace     Created          Size     Security status
+us.icr.io/crnamespace/crrepo   1       f790b3fc1dd7   crnamespace   27 minutes ago   271 MB   No Issues
+us.icr.io/crnamespace/crrepo   crtag   8b8adc7f5e5a   crnamespace   3 days ago       267 MB   No Issues
+
+OK
+
+9: Perform build for the container registry (GO TO Path where the Docker file resides)
+> ibmcloud cr build -f Dockerfile -t us.icr.io/crnamespace/crrepo:1 .
+Sending build context to Docker daemon  57.45MB
+ ---> 09df0563bdfc
+Step 2/4 : ADD  target/curreny-exchange-service-0.0.1-SNAPSHOT.jar curreny-exchange-service-Docker.jar
+ ---> 439a95748a54
+Step 3/4 : EXPOSE 8111
+ ---> Running in 28279104f32c
+Removing intermediate container 28279104f32c
+ ---> 0510daa486fc
+Step 4/4 : ENTRYPOINT ["java","-jar","curreny-exchange-service-Docker.jar"]
+ ---> Running in 8f67bff33ffc
+Removing intermediate container 8f67bff33ffc
+ ---> 185bebaa284c
+Successfully built 185bebaa284c
+Successfully tagged us.icr.io/crnamespace/crrepo:1
+The push refers to repository [us.icr.io/crnamespace/crrepo]
+
+[1B4a386893: Preparing
+[1B90fbc316: Preparing
+[1B43518924: Preparing
+[1B244a7e74: Preparing
+[1B5adb8e97: Preparing
+[1Ba217d66f: Preparing
+[1Bdd7165d3: Preparing
+[8B1: digest: sha256:f790b3fc1dd7275fca50ff419efb8d48dcc6b9f68a26c554e79f96ca7d80794f size: 2007
+SECURITY WARNING: You are building a Docker image from Windows against a non-Windows Docker host. All files and directories added to build context will have '-rwxr-xr-x' permissions. It is recommended to double check and reset permissions for sensitive files and directories.
+
+OK
+
+
+10: Set CS region to cluster's region
+>ibmcloud cs region-set eu-de
+
+11 : Get cluster config using below command (this command is deprecated 'ibmcloud ks cluster config')
+> ibmcloud cs cluster config --cluster crcluster
+
+12 : Copy result of above command in next command line.
+>Eg
+SET IKS_BETA_VERSION=1
+SET KUBECONFIG=C:\Users\DivyaGoel\.bluemix\plugins\container-service\clusters\crcluster-bnkvef6d0f224lcn0oug\kube-config-hou02-crcluster.yml
+
+
+13 : To see nodes us below command
+> kubectl get nodes
+NAME           STATUS   ROLES    AGE    VERSION
+10.76.92.199   Ready    <none>   3d3h   v1.14.9+IKS
+
+******
+Deploy your MS application to Kubernetes
+*****
+
+14 : Create deployment
+> kubectl run crdeployment --image=us.icr.io/crnamespace/crrepo:1
+kubectl run --generator=deployment/apps.v1 is DEPRECATED and will be removed in a future version. Use kubectl run --generator=run-pod/v1 or kubectl create instead.
+deployment.apps/crdeployment created
+
+
+15 : Verify PODS are running
+> kubectl get pods
+NAME                             READY   STATUS    RESTARTS   AGE
+crdeployment-56b99c7c78-tf5kl    1/1     Running   0          91s
+
+
+16 : See logs
+> kubectl logs crdeployment-56b99c7c78-tf5kl
+
+
+17 : Create Service
+> kubectl expose deployment/crdeployment --type=NodePort --port=8111 --name=currency-exchange-service --target-port=8111
+service/currency-exchange-service exposed
+
+
+18 : Obtain the NodePort of your service
+PS C:\Users\DivyaGoel\Desktop\Share project\curreny-exchange-service\curreny-exchange-service> kubectl describe service currency-exchange-service
+Name:                     currency-exchange-service
+Namespace:                default
+Labels:                   run=crdeployment
+Annotations:              <none>
+Selector:                 run=crdeployment
+Type:                     NodePort
+IP:                       172.21.248.8
+Port:                     <unset>  8111/TCP
+TargetPort:               8111/TCP
+NodePort:                 <unset>  30391/TCP
+Endpoints:                172.30.143.140:8111
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+
+
+19 : Obtain the public IP address of the cluster
+PS C:\Users\DivyaGoel\Desktop\Share project\curreny-exchange-service\curreny-exchange-service> ibmcloud ks workers --cluster crcluster
+OK
+ID                                                     Public IP       Private IP     Flavor   State    Status   Zone    Version
+kube-bnkvef6d0f224lcn0oug-crcluster-default-0000005c   173.193.92.91   10.76.92.199   free     normal   Ready    hou02   1.14.9_1541
+
+
+--> try hitting http://publicIP:NodePort
+For MS-1 http://173.193.92.91:30391/currency-exchange/from/EUR/to/INR
+
+
+
+For MS-2 http://159.122.178.199:31961/
+For Eureka http://159.122.178.199:31431/
+
+
+
+PS C:\Users\DivyaGoel\Desktop\Share project\curreny-exchange-service\curreny-exchange-service> kubectl config current-context
+crcluster/bnkvef6d0f224lcn0oug
+
+
+PS C:\Users\DivyaGoel\Desktop\Share project\curreny-exchange-service\curreny-exchange-service> kubectl config view
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority: C:\Users\DivyaGoel\.bluemix\plugins\container-service\clusters\crcluster-bnkvef6d0f224lcn0oug\ca-hou02-crcluster.pem
+    server: https://c5.dal12.containers.cloud.ibm.com:20322
+  name: crcluster/bnkvef6d0f224lcn0oug
+contexts:
+- context:
+    cluster: crcluster/bnkvef6d0f224lcn0oug
+    namespace: default
+    user: divgoel4@in.ibm.com/bb3923a11c991176b1972ed720dbb439
+  name: crcluster/bnkvef6d0f224lcn0oug
+current-context: crcluster/bnkvef6d0f224lcn0oug
+kind: Config
+preferences: {}
+users:
+- name: divgoel4@in.ibm.com/bb3923a11c991176b1972ed720dbb439
+  user:
+    auth-provider:
+      config:
+        client-id: kube
+        client-secret: kube
+        id-token: eyJraWQiOiIyMDE5MDcyNCIsImFsZyI6IlJTMjU2In0.eyJpYW1faWQiOiJJQk1pZC0yNzAwMDdHTlhLIiwiaXNzIjoiaHR0cHM6Ly9pYW0uYmx1ZW1peC5uZXQvaWRlbnRpdHkiLCJzdWIiOiJkaXZnb2VsNEBpbi5pYm0uY29tIiwiYXVkIjoia3ViZSIsImdpdmVuX25hbWUiOiJEaXZ5YSIsImZhbWlseV9uYW1lIjoiR29lbCIsIm5hbWUiOiJEaXZ5YSBHb2VsIiwiZW1haWwiOiJkaXZnb2VsNEBpbi5pYm0uY29tIiwiZXhwIjoxNTc1ODkxNzYzLCJzY29wZSI6ImlibSBvcGVuaWQgY29udGFpbmVycy1rdWJlcm5ldGVzIiwiaWF0IjoxNTc1ODg4MTYzLCJzdWJfYmIzOTIzYTExYzk5MTE3NmIxOTcyZWQ3MjBkYmI0MzkiOiJkaXZnb2VsNEBpbi5pYm0uY29tIiwiZ3JvdXBzX2JiMzkyM2ExMWM5OTExNzZiMTk3MmVkNzIwZGJiNDM5IjpbXX0.VoezDIOA-U1D1JP2rZUPugCDvbI4y4zA3V6JeEkCQFW80d1d9XaGfJTeuRcvsUZhaJnjRLGYyPn3z5dzJHX35BNhx_JOpxK1yuMUyLxP7QV4BDjif7jTlgVZCHnzJzbuQRedreJeR0o5LhA2lmHjlowPwRQcCZi-G_Zc7hiYaVntKTBAdPBPuKU5JfBlvAWN_IGGz4VD4lf4Ff0Z4FkLwdOJfd7FAZn7cYnNXcDLxPJjjrz7Mwwvh-TivNNaFS03QS6dxIFL8bY_W-qJJDt3L-_W71LbczzbWd7hBWy_xI3OCYmCQBV4KANPpo2209GrKRiXPxKtW3oLIlUs6WeIEQ
+        idp-issuer-url: https://iam.bluemix.net/identity
+        refresh-token: ReVREw_pddwnA0jYF1u5M_hy2z0gEqTboxhXG-eWvm0ueHqAvPPD4AswDETrQmJ8aDNs4GRNuwrT1Fc1WaynlI2cJKm8Rf685VsAyYWtrctCUys7X5TVR_j5X3Bm39JxbMbQIXtZDrBEUPTWwYA9lgDhorj9E1BpdzLKJKLRecrCbzA8Nar9ATHuOWRyziTOWXW8ewFaHOd_ex1TfhG1sZmW4ZbrHfTfbDjHfCyY_j99zStay3ggk7BYwoypmgCLbhBOJ0LI5Zo78e0i9xdy4mjZTvx47pwWFzhIONWQdUhC8Kn9xDeeqo54HD4mY5zINmIXgG4hwPQ_A9eBucd5Bw0zdj-lAujW6n8k6N6wpfhit0EiBz2eIs10lrjEQtUBAPkyjz4fLM-exDX2G-8nHM6aXcyMsW4cH6iXCx13SUFBvrg7lryICcX1Zj8dCuda7xKQ4Js8tu76fDS3IEn72aDdXbUV3XVFZqqZ9PAUedTOLONEEzPQofs-ILidYSkzGwXGoEHT0BDX2DGhfXHplWhyTvmqPgPOnGyIn59ANK7bgw6pzSg-VQRaZ7hj9pq1pUUbTAQpJYKkH6YROfn1R_6ElCytZXxevJ5JpO9dmQW-Nv7F856GOm9RiUH2J37d8lq7OxmhEazR469yAIhnx60dnw6WDUdSPo4_S7D2tUVJPiXaxrjzNVaQWWmfyJA24EuKkGLSoEIigAlGol5HXXq4IX2KM8PNM6nb1oyf-rSW_xehxBOHRHpzekJQpeLAX90HFOmbxmFVhfJLz2LjgCMmvY_xOL4SUGmA-U1mo2ho9CCH1j5LpmE2prKydcx9asqsJCksEFp5aZZGOLmm65INw2eCJ5LFhc3BWBn2ZW69TIqRCnrTWj6Qm3QOUI__kynyKscAHbu_JpdNdaKScK69h29TjxQMMziiJ-tD9G1BqUIA53n7mO18ax902huR_fx7m8ndp-b6cTAchVQpfmXJQ8gd9vjfcztrFxr9T01xX6qF_Ewm32tZ5_zW_YGAY4kGa9jN6-gSpKxGPZ7sEu_zwlLq-87ZiH11WNTQZzA7Pg
+      name: oidc
