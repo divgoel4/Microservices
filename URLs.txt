@@ -1,6 +1,3 @@
-https://cloud.ibm.com/docs/iam?topic=iam-iamtoken_from_apikey
-
-
 LOCALHOST -
 http://localhost:8761/
 http://localhost:8765/currency-conversion-service/currency-converter-feign/from/USD/to/INR/quantity/1000
@@ -14,3 +11,31 @@ http://localhost:9411/
 
 KUBERNETES -
 http://173.193.92.91:30391/currency-exchange/from/EUR/to/INR
+
+
+
+
+
+
+https://cloud.ibm.com/docs/iam?topic=iam-iamtoken_from_apikey
+https://cloud.ibm.com/kubernetes/overview
+https://docs.docker.com/engine/reference/run/
+https://loopback.io/doc/en/lb4/deploying_to_ibm_cloud_kubernetes.html#obtain-the-public-ip-address-of-the-cluster
+https://us-south.containers.cloud.ibm.com/kubeproxy/clusters/bnkvef6d0f224lcn0oug/service/#!/overview?namespace=default
+https://www.ibm.com/cloud/garage/content/course/explore-garage-method-for-cloud/75
+https://developer.ibm.com/patterns/deploy-microprofile-java-microservices-on-kubernetes/
+https://github.com/IBM/deploy-ibm-cloud-private/blob/master/README.md#accessing-ibm-cloud-private
+https://www.youtube.com/watch?v=FlSup_eelYE
+https://www.youtube.com/watch?v=1xo-0gCVhTU
+https://www.youtube.com/watch?v=daVUONZqn88
+https://callistaenterprise.se/blogg/teknik/2017/07/29/building-microservices-part-7-distributed-tracing/
+https://hub.docker.com/repositories
+https://github.com/IBM/Java-MicroProfile-on-Kubernetes
+
+
+
+
+
+
+
+
